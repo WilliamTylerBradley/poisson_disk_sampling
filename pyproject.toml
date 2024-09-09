@@ -1,0 +1,16 @@
+[project]
+name = "poisson_disk_sampling"
+version = "0.0.1"
+authors = [
+  { name="Tyler Bradley", email="william.tyler.bradley@gmail.com" },
+]
+description = "Create a points set by poisson disk sampling."
+readme = "README.md"
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "github.com/WilliamTylerBradley/poisson_disk_sampling"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
