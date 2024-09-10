@@ -1,5 +1,6 @@
 import math
 import random
+import copy
 
 
 class Point:
@@ -17,7 +18,10 @@ class Point:
 
     """
 
-    def __init__(self, order: int, x: float, y: float) -> None:
+    def __init__(self, 
+                 order: int, 
+                 x: float, 
+                 y: float) -> None:
         """
         Constructs a point
 
@@ -56,7 +60,8 @@ class PoissonDiskSampling:
     points: list
         The main list of points
     """
-    def __init__(self, radius: float,
+    def __init__(self, 
+                 radius: float,
                  grid_width: float,
                  grid_height: float,
                  sample_limit: int = 30,
@@ -120,14 +125,15 @@ class PoissonDiskSampling:
             self.insert_point(
                 Point(0,
                       random.random() * self.grid_width,
-                      random.random() * self.grid_cell_height))
+                      random.random() * self.grid_height))
 
         # Continue until all points are checked
         # Randomly pull a point that hasn't been removed each time
         while self.active_list:
             self.sample(random.randrange(len(self.active_list)))
 
-    def insert_point(self, p: Point) -> None:
+    def insert_point(self, 
+                     p: Point) -> None:
         """
         Inserts a new point into the self.points list and the self.grid
         array. If the point is near the edge, extra points will be added
@@ -181,7 +187,9 @@ class PoissonDiskSampling:
         # Insert into active list
         self.active_list.append(p)
 
-    def check_neighbors(self, x: float, y: float) -> bool:
+    def check_neighbors(self, 
+                        x: float, 
+                        y: float) -> bool:
         """Checks if there are any points too close a location."""
         cell_x: int = math.floor(x/self.cell_size) + self.bounds
         cell_y: int = math.floor(y/self.cell_size) + self.bounds
@@ -199,7 +207,8 @@ class PoissonDiskSampling:
 
         return True
 
-    def sample(self, active_index: int) -> None:
+    def sample(self, 
+               active_index: int) -> None:
         """
         Samples locations near the active_index point and checks if they
         can be added to the list/grid. Either a new point will be added
@@ -234,3 +243,72 @@ class PoissonDiskSampling:
 
         if not new_point:
             del self.active_list[active_index]
+
+def sample_points(radius: float,
+                 grid_width: float,
+                 grid_height: float,
+                 sample_limit: int = 30,
+                 repeat_percentage: float = .25,
+                 seed: int = None,
+                 inital_point: Point = None) -> None:
+    """
+    Creates a list of points from poisson disk sampling with optional
+    repeats along the edges.
+
+    Parameters
+    ----------
+    radius: float
+        The minimum distance between points
+    grid_width: float
+        The width of the grid
+    grid_height: float
+        The height of the grid
+    sample_limit: int
+        The number of times to try to find a new sample point for
+        each attempt with an active point. Decreasing will speed up
+        the process, but increasing will fill in more points.
+    repeat_percentage: float
+        How much to repeat points around the borders. 0 for no repeats
+        1 for full repeats.
+    seed: int
+        Seed for the random number generator, if needed.
+    inital_point: Point
+        Inital point to use. If one is not provided, then one is
+        choosen at random. This is mostly used for testing.
+    """
+    samp: PoissonDiskSampling = PoissonDiskSampling(radius, 
+                                                    grid_width, 
+                                                    grid_height,
+                                                    seed,
+                                                    inital_point)
+    if repeat_percentage == 0:
+        return samp.points
+
+    # Find boundaries from repeat_percentage
+    width_min: float = 0 - (grid_width * repeat_percentage)
+    width_max: float = grid_width + (grid_width * repeat_percentage)
+    height_min: float = 0 - (grid_height * repeat_percentage)
+    height_max: float = grid_height + (grid_height * repeat_percentage)
+
+    # Fill list with base points and copies for repetition
+    points: list = copy.deepcopy(samp.points)
+
+    column: int
+    row: int
+    p: list
+    for column in range(-1, 2):
+        for row in range(-1, 2):
+            if column != 0 or row != 0:
+                rep_points: list = copy.deepcopy(samp.points)
+                for p in rep_points:
+                    p[1] = p[1] + column * grid_width
+                    p[2] = p[2] + row * grid_height
+                # Check if the repeated points are in bounds
+                rep_points = [p for p in rep_points 
+                                if p[1] >= width_min
+                                and p[1] <= width_max
+                                and p[2] >= height_min
+                                and p[2] <= height_max]
+                points.extend(rep_points)
+
+    return points
