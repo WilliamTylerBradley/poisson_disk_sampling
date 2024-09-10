@@ -18,9 +18,9 @@ class Point:
 
     """
 
-    def __init__(self, 
-                 order: int, 
-                 x: float, 
+    def __init__(self,
+                 order: int,
+                 x: float,
                  y: float) -> None:
         """
         Constructs a point
@@ -60,7 +60,7 @@ class PoissonDiskSampling:
     points: list
         The main list of points
     """
-    def __init__(self, 
+    def __init__(self,
                  radius: float,
                  grid_width: float,
                  grid_height: float,
@@ -132,7 +132,7 @@ class PoissonDiskSampling:
         while self.active_list:
             self.sample(random.randrange(len(self.active_list)))
 
-    def insert_point(self, 
+    def insert_point(self,
                      p: Point) -> None:
         """
         Inserts a new point into the self.points list and the self.grid
@@ -187,8 +187,8 @@ class PoissonDiskSampling:
         # Insert into active list
         self.active_list.append(p)
 
-    def check_neighbors(self, 
-                        x: float, 
+    def check_neighbors(self,
+                        x: float,
                         y: float) -> bool:
         """Checks if there are any points too close a location."""
         cell_x: int = math.floor(x/self.cell_size) + self.bounds
@@ -207,7 +207,7 @@ class PoissonDiskSampling:
 
         return True
 
-    def sample(self, 
+    def sample(self,
                active_index: int) -> None:
         """
         Samples locations near the active_index point and checks if they
@@ -244,13 +244,14 @@ class PoissonDiskSampling:
         if not new_point:
             del self.active_list[active_index]
 
+
 def sample_points(radius: float,
-                 grid_width: float,
-                 grid_height: float,
-                 sample_limit: int = 30,
-                 repeat_percentage: float = .25,
-                 seed: int = None,
-                 inital_point: Point = None) -> None:
+                  grid_width: float,
+                  grid_height: float,
+                  sample_limit: int = 30,
+                  repeat_percentage: float = .25,
+                  seed: int = None,
+                  inital_point: Point = None) -> None:
     """
     Creates a list of points from poisson disk sampling with optional
     repeats along the edges.
@@ -276,11 +277,12 @@ def sample_points(radius: float,
         Inital point to use. If one is not provided, then one is
         choosen at random. This is mostly used for testing.
     """
-    samp: PoissonDiskSampling = PoissonDiskSampling(radius, 
-                                                    grid_width, 
-                                                    grid_height,
-                                                    seed,
-                                                    inital_point)
+    samp: PoissonDiskSampling = PoissonDiskSampling(radius=radius,
+                                                    grid_width=grid_width,
+                                                    grid_height=grid_height,
+                                                    sample_limit=sample_limit,
+                                                    seed=seed,
+                                                    inital_point=inital_point)
     if repeat_percentage == 0:
         return samp.points
 
@@ -304,11 +306,21 @@ def sample_points(radius: float,
                     p[1] = p[1] + column * grid_width
                     p[2] = p[2] + row * grid_height
                 # Check if the repeated points are in bounds
-                rep_points = [p for p in rep_points 
-                                if p[1] >= width_min
-                                and p[1] <= width_max
-                                and p[2] >= height_min
-                                and p[2] <= height_max]
+                rep_points = [p for p in rep_points
+                              if p[1] >= width_min
+                              and p[1] <= width_max
+                              and p[2] >= height_min
+                              and p[2] <= height_max]
                 points.extend(rep_points)
 
     return points
+
+
+if __name__ == '__main__':
+    height = 20
+    width = 30
+    radius = 2
+
+    samp = sample_points(radius, width, height, seed=0)
+
+    print(samp)
